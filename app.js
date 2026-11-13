@@ -1,0 +1,51 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+
+const notFound = require('./middlewares/notFound.middleware');
+const errorHandler = require('./middlewares/error.middleware');
+
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const departmentRoutes = require('./routes/department.routes');
+const projectRoutes = require('./routes/project.routes');
+const taskRoutes = require('./routes/task.routes');
+const worklogRoutes = require('./routes/worklog.routes');
+const managerRoutes = require('./routes/manager.routes');
+const adminRoutes = require('./routes/admin.routes');
+
+const app = express();
+
+// Security and utility middleware
+app.use(helmet());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
+});
+
+// Mount API v1 routes
+const API_PREFIX = '/api/v1';
+app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/users`, userRoutes);
+app.use(`${API_PREFIX}/departments`, departmentRoutes);
+app.use(`${API_PREFIX}/projects`, projectRoutes);
+app.use(`${API_PREFIX}/tasks`, taskRoutes);
+app.use(`${API_PREFIX}/worklogs`, worklogRoutes);
+app.use(`${API_PREFIX}/manager`, managerRoutes);
+app.use(`${API_PREFIX}/admin`, adminRoutes);
+
+// Catch 404 and handle errors
+app.use(notFound);
+app.use(errorHandler);
+
+module.exports = app;
