@@ -157,6 +157,11 @@ const listTasks = async (user, query = {}) => {
         },
       ],
     },
+    {
+      model: TaskComment,
+      as: 'comments',
+      include: [{ model: User, as: 'author', attributes: ['id', 'first_name', 'last_name', 'email'] }],
+    },
   ];
 
   if (user.role === 'ADMIN') {
