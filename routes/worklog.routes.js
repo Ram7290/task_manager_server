@@ -2,16 +2,31 @@ const express = require('express');
 const router = express.Router();
 const worklogController = require('../controllers/worklog.controller');
 const authenticate = require('../middlewares/auth.middleware');
+const authorize = require('../middlewares/role.middleware');
 const validate = require('../middlewares/validation.middleware');
 const {
   addWorklogEntrySchema,
   updateWorklogEntrySchema,
+  createCategorySchema,
+  updateCategorySchema,
 } = require('../validators/worklog.validator');
 
 router.use(authenticate);
 
 // Worklog Categories
 router.get('/categories', worklogController.getCategories);
+router.post(
+  '/categories',
+  authorize('ADMIN'),
+  validate(createCategorySchema),
+  worklogController.createCategory
+);
+router.patch(
+  '/categories/:id',
+  authorize('ADMIN'),
+  validate(updateCategorySchema),
+  worklogController.updateCategory
+);
 
 // Employee worklog draft & reports
 router.get('/today', worklogController.getTodayDraft);

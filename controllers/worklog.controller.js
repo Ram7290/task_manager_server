@@ -2,8 +2,19 @@ const asyncHandler = require('../utils/asyncHandler');
 const worklogService = require('../services/worklog.service');
 
 const getCategories = asyncHandler(async (req, res) => {
-  const categories = await worklogService.listCategories();
+  const includeInactive = req.user.role === 'ADMIN' && req.query.include_inactive === 'true';
+  const categories = await worklogService.listCategories({ includeInactive });
   res.status(200).json({ success: true, data: categories });
+});
+
+const createCategory = asyncHandler(async (req, res) => {
+  const category = await worklogService.createCategory(req.body, req.user.id);
+  res.status(201).json({ success: true, message: 'Category created', data: category });
+});
+
+const updateCategory = asyncHandler(async (req, res) => {
+  const category = await worklogService.updateCategory(req.params.id, req.body, req.user.id);
+  res.status(200).json({ success: true, message: 'Category updated', data: category });
 });
 
 const getTodayDraft = asyncHandler(async (req, res) => {
@@ -47,6 +58,8 @@ const submitReport = asyncHandler(async (req, res) => {
 
 module.exports = {
   getCategories,
+  createCategory,
+  updateCategory,
   getTodayDraft,
   getMyReports,
   getReportById,

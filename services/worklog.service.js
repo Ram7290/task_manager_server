@@ -27,11 +27,64 @@ const getTodayDateString = (req) => {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 };
 
-const listCategories = async () => {
+const listCategories = async ({ includeInactive = false } = {}) => {
   return await WorklogCategory.findAll({
-    where: { is_active: true },
+    where: includeInactive ? {} : { is_active: true },
     order: [['name', 'ASC']],
   });
+};
+
+const createCategory = async (data, actorId) => {
+  const name = data.name.trim();
+  const existing = await WorklogCategory.findOne({ where: { name } });
+  if (existing) throw ApiError.badRequest('A category with this name already exists');
+
+  const category = await WorklogCategory.create({
+    name,
+    description: data.description || null,
+    is_active: true,
+  });
+
+  await logAudit({
+    actor_user_id: actorId,
+    action: 'CREATE_WORKLOG_CATEGORY',
+    entity_type: 'WORKLOG_CATEGORY',
+    entity_id: category.id,
+    new_values: category.toJSON(),
+  });
+
+  return category;
+};
+
+const updateCategory = async (id, data, actorId) => {
+  const category = await WorklogCategory.findByPk(id);
+  if (!category) throw ApiError.notFound('Category not found');
+
+  const old_values = category.toJSON();
+
+  if (data.name !== undefined) {
+    const name = data.name.trim();
+    if (name !== category.name) {
+      const existing = await WorklogCategory.findOne({ where: { name } });
+      if (existing) throw ApiError.badRequest('A category with this name already exists');
+    }
+    category.name = name;
+  }
+  if (data.description !== undefined) category.description = data.description || null;
+  if (data.is_active !== undefined) category.is_active = data.is_active;
+
+  await category.save();
+
+  await logAudit({
+    actor_user_id: actorId,
+    action: category.is_active ? 'UPDATE_WORKLOG_CATEGORY' : 'DEACTIVATE_WORKLOG_CATEGORY',
+    entity_type: 'WORKLOG_CATEGORY',
+    entity_id: category.id,
+    old_values,
+    new_values: category.toJSON(),
+  });
+
+  return category;
 };
 
 const getOrCreateTodayDraft = async (employeeId, req) => {
@@ -352,6 +405,8 @@ const submitReport = async (reportId, user) => {
 
 module.exports = {
   listCategories,
+  createCategory,
+  updateCategory,
   getOrCreateTodayDraft,
   getReportWithEntries,
   getReportById,

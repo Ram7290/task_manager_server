@@ -40,8 +40,25 @@ const reportCorrectionSchema = {
   }),
 };
 
+const createCategorySchema = {
+  body: z.object({
+    name: z.string().trim().min(2, 'Category name must be at least 2 characters').max(100),
+    description: z.string().max(500).nullable().optional(),
+  }),
+};
+
+const updateCategorySchema = {
+  body: z.object({
+    name: z.string().trim().min(2, 'Category name must be at least 2 characters').max(100).optional(),
+    description: z.string().max(500).nullable().optional(),
+    is_active: z.boolean().optional(),
+  }),
+};
+
 module.exports = {
   addWorklogEntrySchema,
   updateWorklogEntrySchema,
   reportCorrectionSchema,
+  createCategorySchema,
+  updateCategorySchema,
 };
