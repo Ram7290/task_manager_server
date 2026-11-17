@@ -7,7 +7,7 @@ const getCategories = asyncHandler(async (req, res) => {
 });
 
 const getTodayDraft = asyncHandler(async (req, res) => {
-  const report = await worklogService.getOrCreateTodayDraft(req.user.id);
+  const report = await worklogService.getOrCreateTodayDraft(req.user.id, req);
   res.status(200).json({ success: true, data: report });
 });
 

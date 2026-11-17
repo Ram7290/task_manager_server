@@ -10,6 +10,8 @@ router.use(authenticate);
 router.use(authorize('ADMIN'));
 
 router.get('/dashboard', adminController.getDashboard);
+router.get('/submission-timeline', adminController.getSubmissionTimeline);
+router.get('/users/:userId/overview', adminController.getUserOverview);
 router.get('/worklogs', adminController.getAllWorklogs);
 router.post(
   '/worklogs/:reportId/corrections',

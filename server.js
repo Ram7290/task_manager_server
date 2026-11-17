@@ -10,7 +10,7 @@ const startServer = async () => {
     console.log('Database connected successfully.');
 
     // In development mode, synchronize tables
-    await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true });
     console.log('Database schema synchronized.');
 
     app.listen(PORT, () => {

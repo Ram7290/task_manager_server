@@ -12,6 +12,8 @@ const {
   WorklogCategory,
   DailyReport,
   DailyWorklog,
+  CompanyOffDay,
+  AttendanceException,
 } = require('../models');
 
 const seed = async () => {
@@ -239,6 +241,56 @@ const seed = async () => {
       description: 'Investigated test automation frameworks',
       duration_minutes: 90, // 1.5h
     });
+
+    // 9. Seed Company Off Days (Sundays this month + 2 Saturdays + 1 holiday)
+    console.log('Seeding Company Off Days & Attendance...');
+
+    const sundaysInMonth = (year, month) => {
+      const days = [];
+      const d = new Date(year, month - 1, 1);
+      while (d.getDay() !== 0) d.setDate(d.getDate() + 1);
+      while (d.getMonth() === month - 1) {
+        days.push(d.toISOString().split('T')[0]);
+        d.setDate(d.getDate() + 7);
+      }
+      return days;
+    };
+
+    const now = new Date();
+    const yr = now.getFullYear();
+    const mo = now.getMonth() + 1;
+
+    const sundayEntries = sundaysInMonth(yr, mo).map(date => ({
+      date, type: 'SUNDAY', reason: 'Weekly off', created_by: admin.id,
+    }));
+
+    // Find 1st and 3rd Saturday of this month
+    const satEntries = (() => {
+      const sats = [];
+      const d = new Date(yr, mo - 1, 1);
+      while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+      if (d.getMonth() === mo - 1) {
+        sats.push({ date: d.toISOString().split('T')[0], type: 'SATURDAY', reason: '1st Saturday off', created_by: admin.id });
+        const third = new Date(d); third.setDate(third.getDate() + 14);
+        if (third.getMonth() === mo - 1) {
+          sats.push({ date: third.toISOString().split('T')[0], type: 'SATURDAY', reason: '3rd Saturday off', created_by: admin.id });
+        }
+      }
+      return sats;
+    })();
+
+    // Sample public holiday 10 days from now
+    const holidayDate = new Date(); holidayDate.setDate(holidayDate.getDate() + 10);
+    const holiday = { date: holidayDate.toISOString().split('T')[0], type: 'PUBLIC_HOLIDAY', reason: 'National Holiday', created_by: admin.id };
+
+    await CompanyOffDay.bulkCreate([...sundayEntries, ...satEntries, holiday], { ignoreDuplicates: true });
+
+    // 10. Seed sample attendance exceptions
+    const yesterday2 = new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0];
+    await AttendanceException.bulkCreate([
+      { employee_id: employee1.id, date: yesterday2, type: 'ABSENT', reason: 'Unplanned absence (sample)', marked_by: admin.id },
+      { employee_id: employee2.id, date: yesterday,  type: 'LEAVE',  reason: 'Medical leave (sample)',   marked_by: admin.id },
+    ], { ignoreDuplicates: true });
 
     console.log('----------------------------------------------------');
     console.log('Seeding completed successfully!');

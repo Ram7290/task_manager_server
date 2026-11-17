@@ -15,6 +15,8 @@ const DailyWorklog = require('./DailyWorklog');
 const ReportCorrection = require('./ReportCorrection');
 const AuditLog = require('./AuditLog');
 const CompanySetting = require('./CompanySetting');
+const CompanyOffDay = require('./CompanyOffDay');
+const AttendanceException = require('./AttendanceException');
 
 // Department <-> User
 Department.hasMany(User, { foreignKey: 'department_id', as: 'users' });
@@ -110,6 +112,14 @@ ReportCorrection.belongsTo(User, { foreignKey: 'corrected_by', as: 'corrector' }
 // AuditLog <-> User
 AuditLog.belongsTo(User, { foreignKey: 'actor_user_id', as: 'actor' });
 
+// CompanyOffDay <-> User (creator)
+CompanyOffDay.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// AttendanceException <-> User
+AttendanceException.belongsTo(User, { foreignKey: 'employee_id', as: 'employee' });
+AttendanceException.belongsTo(User, { foreignKey: 'marked_by', as: 'marker' });
+User.hasMany(AttendanceException, { foreignKey: 'employee_id', as: 'attendanceExceptions' });
+
 module.exports = {
   sequelize,
   User,
@@ -128,4 +138,6 @@ module.exports = {
   ReportCorrection,
   AuditLog,
   CompanySetting,
+  CompanyOffDay,
+  AttendanceException,
 };

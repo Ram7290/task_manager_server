@@ -46,7 +46,8 @@ const getTeamMembers = async (managerId) => {
 
 const getTeamDashboard = async (managerId) => {
   const employeeIds = await getManagerSubordinateIds(managerId);
-  const today = new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
   // 1. Team members count
   const totalTeamMembers = employeeIds.length;

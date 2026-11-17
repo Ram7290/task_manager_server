@@ -2,8 +2,13 @@ const asyncHandler = require('../utils/asyncHandler');
 const adminService = require('../services/admin.service');
 
 const getDashboard = asyncHandler(async (req, res) => {
-  const stats = await adminService.getAdminDashboard();
+  const stats = await adminService.getAdminDashboard(req.query);
   res.status(200).json({ success: true, data: stats });
+});
+
+const getSubmissionTimeline = asyncHandler(async (req, res) => {
+  const data = await adminService.getSubmissionTimeline(req.query);
+  res.status(200).json({ success: true, data: data });
 });
 
 const getAllWorklogs = asyncHandler(async (req, res) => {
@@ -25,9 +30,16 @@ const getAuditLogs = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: logs });
 });
 
+const getUserOverview = asyncHandler(async (req, res) => {
+  const data = await adminService.getUserOverview(req.params.userId);
+  res.status(200).json({ success: true, data });
+});
+
 module.exports = {
   getDashboard,
+  getSubmissionTimeline,
   getAllWorklogs,
   correctReport,
   getAuditLogs,
+  getUserOverview,
 };

@@ -14,8 +14,17 @@ const {
 } = require('../models');
 const { logAudit } = require('./audit.service');
 
-const getTodayDateString = () => {
-  return new Date().toISOString().split('T')[0];
+const getTodayDateString = (req) => {
+  // Prefer the browser's local date (sent as X-Client-Date: YYYY-MM-DD).
+  // This handles IST vs GST correctly without any UTC conversion.
+  // Falls back to server local date only if the header is absent or malformed.
+  const clientDate = req?.headers?.['x-client-date'];
+  if (clientDate && /^\d{4}-\d{2}-\d{2}$/.test(clientDate)) {
+    return clientDate;
+  }
+  // Server-side fallback: build from local clock (not toISOString which is UTC)
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 };
 
 const listCategories = async () => {
@@ -25,8 +34,8 @@ const listCategories = async () => {
   });
 };
 
-const getOrCreateTodayDraft = async (employeeId) => {
-  const today = getTodayDateString();
+const getOrCreateTodayDraft = async (employeeId, req) => {
+  const today = getTodayDateString(req);
 
   let [report, created] = await DailyReport.findOrCreate({
     where: {
@@ -78,17 +87,21 @@ const getReportById = async (reportId, user) => {
       throw ApiError.forbidden('You cannot view another employee’s report');
     }
   } else if (user.role === 'MANAGER') {
-    // Managers must NEVER see draft reports!
-    if (report.status === 'DRAFT') {
-      throw ApiError.forbidden('Managers are not permitted to view draft report contents');
-    }
+    // Managers also file their own daily worklogs — viewing/editing their OWN report
+    // (draft or submitted) is always allowed. Restrictions apply only to OTHERS' reports.
+    if (report.employee_id !== user.id) {
+      // Managers must NEVER see another employee's draft report contents
+      if (report.status === 'DRAFT') {
+        throw ApiError.forbidden('Managers are not permitted to view another employee’s draft report');
+      }
 
-    // Must be in manager's scope
-    const access = await ManagerEmployeeAccess.findOne({
-      where: { manager_id: user.id, employee_id: report.employee_id },
-    });
-    if (!access) {
-      throw ApiError.forbidden('You do not have access to this employee’s reports');
+      // Must be in manager's scope
+      const access = await ManagerEmployeeAccess.findOne({
+        where: { manager_id: user.id, employee_id: report.employee_id },
+      });
+      if (!access) {
+        throw ApiError.forbidden('You do not have access to this employee’s reports');
+      }
     }
   }
 
