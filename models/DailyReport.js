@@ -24,6 +24,11 @@ const DailyReport = sequelize.define('DailyReport', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  auto_submitted: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
 }, {
   tableName: 'daily_reports',
   timestamps: true,

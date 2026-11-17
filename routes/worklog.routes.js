@@ -30,6 +30,7 @@ router.patch(
 
 // Employee worklog draft & reports
 router.get('/today', worklogController.getTodayDraft);
+router.get('/reminder', worklogController.getSubmitReminder);
 router.get('/my-reports', worklogController.getMyReports);
 router.get('/reports/:reportId', worklogController.getReportById);
 

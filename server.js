@@ -16,6 +16,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`API Base URL: http://localhost:${PORT}/api/v1`);
+      require('./services/autosubmit.service').startAutoSubmitJob();
     });
   } catch (error) {
     console.error('Failed to initialize server:', error);

@@ -1,10 +1,16 @@
 const asyncHandler = require('../utils/asyncHandler');
 const worklogService = require('../services/worklog.service');
+const { getSubmitReminder: getSubmitReminderService } = require('../services/reminder.service');
 
 const getCategories = asyncHandler(async (req, res) => {
   const includeInactive = req.user.role === 'ADMIN' && req.query.include_inactive === 'true';
   const categories = await worklogService.listCategories({ includeInactive });
   res.status(200).json({ success: true, data: categories });
+});
+
+const getSubmitReminder = asyncHandler(async (req, res) => {
+  const reminder = await getSubmitReminderService(req.user);
+  res.status(200).json({ success: true, data: reminder });
 });
 
 const createCategory = asyncHandler(async (req, res) => {
@@ -57,6 +63,7 @@ const submitReport = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getSubmitReminder,
   getCategories,
   createCategory,
   updateCategory,
