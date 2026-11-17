@@ -8,6 +8,7 @@ const {
   createUserSchema,
   updateUserSchema,
   setManagerTeamSchema,
+  resetPasswordSchema,
 } = require('../validators/user.validator');
 
 router.use(authenticate);
@@ -20,6 +21,12 @@ router.get('/:id', userController.getUserById);
 router.post('/', authorize('ADMIN'), validate(createUserSchema), userController.createUser);
 router.patch('/:id', authorize('ADMIN'), validate(updateUserSchema), userController.updateUser);
 router.patch('/:id/status', authorize('ADMIN'), userController.toggleUserStatus);
+router.post(
+  '/:id/reset-password',
+  authorize('ADMIN'),
+  validate(resetPasswordSchema),
+  userController.resetUserPassword
+);
 
 // Manager team assignment
 router.get('/:id/team', authorize('ADMIN', 'MANAGER'), userController.getManagerTeam);

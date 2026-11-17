@@ -137,6 +137,23 @@ const toggleUserStatus = async (id, actorId) => {
   return { id: user.id, is_active: user.is_active };
 };
 
+const resetUserPassword = async (id, newPassword, actorId) => {
+  const user = await User.findByPk(id);
+  if (!user) throw ApiError.notFound('User not found');
+
+  user.password_hash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  await logAudit({
+    actor_user_id: actorId,
+    action: 'RESET_PASSWORD',
+    entity_type: 'USER',
+    entity_id: user.id,
+  });
+
+  return { id: user.id };
+};
+
 // Manager Employee Access Mapping
 const getManagerTeam = async (managerId) => {
   const manager = await User.findByPk(managerId, {
@@ -238,6 +255,7 @@ module.exports = {
   createUser,
   updateUser,
   toggleUserStatus,
+  resetUserPassword,
   getManagerTeam,
   setManagerTeam,
   listDepartments,

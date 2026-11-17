@@ -56,7 +56,33 @@ const login = async (email, password, ipAddress = null) => {
   };
 };
 
+const changePassword = async (userId, currentPassword, newPassword, ipAddress = null) => {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!isValidPassword) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  user.password_hash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  await logAudit({
+    actor_user_id: user.id,
+    action: 'CHANGE_PASSWORD',
+    entity_type: 'USER',
+    entity_id: user.id,
+    ip_address: ipAddress,
+  });
+
+  return { message: 'Password changed successfully' };
+};
+
 module.exports = {
   login,
   generateToken,
+  changePassword,
 };

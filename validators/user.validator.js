@@ -23,6 +23,12 @@ const updateUserSchema = {
   }),
 };
 
+const resetPasswordSchema = {
+  body: z.object({
+    new_password: z.string().min(6, 'Password must be at least 6 characters'),
+  }),
+};
+
 const setManagerTeamSchema = {
   body: z.object({
     employee_ids: z.array(z.string().uuid()),
@@ -39,6 +45,7 @@ const createDepartmentSchema = {
 module.exports = {
   createUserSchema,
   updateUserSchema,
+  resetPasswordSchema,
   setManagerTeamSchema,
   createDepartmentSchema,
 };

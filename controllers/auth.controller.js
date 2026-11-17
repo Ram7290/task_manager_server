@@ -27,8 +27,24 @@ const logout = asyncHandler(async (req, res) => {
   });
 });
 
+const changePassword = asyncHandler(async (req, res) => {
+  const ipAddress = req.ip || req.connection.remoteAddress;
+  const result = await authService.changePassword(
+    req.user.id,
+    req.body.current_password,
+    req.body.new_password,
+    ipAddress
+  );
+
+  res.status(200).json({
+    success: true,
+    message: result.message,
+  });
+});
+
 module.exports = {
   login,
   getMe,
   logout,
+  changePassword,
 };

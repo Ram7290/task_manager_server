@@ -26,6 +26,11 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'User status updated', data: result });
 });
 
+const resetUserPassword = asyncHandler(async (req, res) => {
+  await userService.resetUserPassword(req.params.id, req.body.new_password, req.user.id);
+  res.status(200).json({ success: true, message: 'Password reset successfully' });
+});
+
 const getManagerTeam = asyncHandler(async (req, res) => {
   const team = await userService.getManagerTeam(req.params.id);
   res.status(200).json({ success: true, data: team });
@@ -42,6 +47,7 @@ module.exports = {
   createUser,
   updateUser,
   toggleUserStatus,
+  resetUserPassword,
   getManagerTeam,
   setManagerTeam,
 };
